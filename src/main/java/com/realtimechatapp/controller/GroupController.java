@@ -11,6 +11,7 @@ import com.realtimechatapp.dto.GroupRequest;
 import com.realtimechatapp.dto.GroupResponse;
 import com.realtimechatapp.dto.MessageRequest;
 import com.realtimechatapp.entity.Message;
+import com.realtimechatapp.enums.MessageStatus;
 import com.realtimechatapp.service.ChatService;
 import com.realtimechatapp.service.GroupService;
 
@@ -70,5 +71,29 @@ public class GroupController {
 
         return ResponseEntity.ok(
                 chatService.getGroupMessages(groupId, page, size));
+    }
+    
+    @GetMapping("/history/{receiverId}")
+    public Page<Message> history(
+            @PathVariable Long receiverId,
+            @RequestParam Long senderId,
+            @RequestParam(defaultValue="0") int page,
+            @RequestParam(defaultValue="10") int size){
+
+        return chatService.getChatHistory(
+                senderId,
+                receiverId,
+                page,
+                size);
+    }
+    @PutMapping("/{id}/status")
+    public Message updateStatus(
+
+            @PathVariable Long id,
+
+            @RequestParam MessageStatus status){
+
+        return chatService.updateStatus(id,status);
+
     }
 }

@@ -14,6 +14,8 @@ import com.realtimechatapp.dto.MessageRequest;
 import com.realtimechatapp.entity.Message;
 import com.realtimechatapp.service.ChatService;
 
+import jakarta.transaction.Transactional;
+
 import com.realtimechatapp.enums.MessageStatus;
 import com.realtimechatapp.repository.MessageRepository;
 
@@ -61,6 +63,34 @@ public class ChatService {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt"));
 
 		return messageRepository.findByGroupId(groupId, pageable);
+	}
+	
+	public Page<Message> getChatHistory(
+	        Long senderId,
+	        Long receiverId,
+	        int page,
+	        int size){
+
+	    Pageable pageable =
+	            PageRequest.of(page, size);
+
+	    return messageRepository.getChatHistory(
+	            senderId,
+	            receiverId,
+	            pageable);
+	}
+	@Transactional
+	public Message updateStatus(
+	        Long messageId,
+	        MessageStatus status){
+
+	    Message message =
+	            messageRepository.findById(messageId)
+	            .orElseThrow();
+
+	    message.setStatus(status);
+
+	    return messageRepository.save(message);
 	}
 
 }

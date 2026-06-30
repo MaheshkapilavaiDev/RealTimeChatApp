@@ -1,5 +1,6 @@
 package com.realtimechatapp.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,9 @@ import com.realtimechatapp.dto.LoginRequest;
 import com.realtimechatapp.dto.RegisterRequest;
 import com.realtimechatapp.entity.User;
 import com.realtimechatapp.enums.UserStatus;
+import com.realtimechatapp.exception.InvalidCredentialsException;
+import com.realtimechatapp.exception.ResourceNotFoundException;
+import com.realtimechatapp.exception.UserAlreadyExistsException;
 import com.realtimechatapp.repository.MessageRepository;
 import com.realtimechatapp.repository.UserRepository;
 
@@ -34,7 +38,7 @@ public class AuthService {
 
 		if (existingUser.isPresent()) {
 
-			throw new RuntimeException("Username already exists");
+			throw new UserAlreadyExistsException("Username already exists");
 
 		}
 
@@ -53,10 +57,10 @@ public class AuthService {
 	public String loginUser(LoginRequest request) {
 
 		User user = userRepository.findByUsername(request.getUsername())
-				.orElseThrow(() -> new RuntimeException("User Not Found"));
+				.orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
 
 		if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-			throw new RuntimeException("Invalid Password");
+			throw new InvalidCredentialsException("Invalid Password");
 		}
 
 		user.setStatus(UserStatus.ONLINE);
@@ -65,5 +69,20 @@ public class AuthService {
 		return jwtService.generateToken(user.getUsername());
 
 	}
+	
+	public void logout(String username) {
 
-}
+	    User user = userRepository.findByUsername(username)
+	            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+	    user.setStatus(UserStatus.OFFLINE);
+
+	    userRepository.save(user);
+	}
+	public List<User> getOnlineUsers() {
+
+        return userRepository.findByStatus(UserStatus.ONLINE);
+
+    }
+	}
+
